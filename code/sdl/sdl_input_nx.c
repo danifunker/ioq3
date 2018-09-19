@@ -764,13 +764,13 @@ static void IN_GamepadMove( void )
 	}
 
 	// HACK: in menus, also generate mouse events from some of the buttons and left analog
-	if (clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || (Key_GetCatcher( ) & KEYCATCH_UI))
+	if (clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI ))
 	{
 		int mousedx = stick_state.oldaaxes[0];
 		int mousedy = stick_state.oldaaxes[1];
 
 		if (abs(mousedx) > 32 || abs(mousedy) > 32)
-			Com_QueueEvent( in_eventTime, SE_MOUSE, mousedx / 2048, mousedy / 2048, 0, NULL );
+			Com_QueueEvent( in_eventTime, SE_MOUSE, mousedx / 3072, mousedy / 3072, 0, NULL );
 
 		if (changed[SDL_CONTROLLER_BUTTON_A])
 			Com_QueueEvent(in_eventTime, SE_KEY, K_MOUSE2, stick_state.buttons[SDL_CONTROLLER_BUTTON_A], 0, NULL);
