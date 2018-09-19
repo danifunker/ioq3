@@ -401,10 +401,18 @@ static void SetViewportAndScissor( void ) {
 	qglMatrixMode(GL_MODELVIEW);
 
 	// set the window clipping
+#ifdef __SWITCH__
+	// fb size is currently 1280X720
+	qglViewport( backEnd.viewParms.viewportX, (720 - glConfig.vidHeight) + backEnd.viewParms.viewportY, 
+		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
+	qglScissor( backEnd.viewParms.viewportX, (720 - glConfig.vidHeight) + backEnd.viewParms.viewportY, 
+		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
+#else
 	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
 		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
 	qglScissor( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
 		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
+#endif
 }
 
 /*
@@ -699,8 +707,14 @@ void	RB_SetGL2D (void) {
 	backEnd.projection2D = qtrue;
 
 	// set 2D virtual screen size
+#ifdef __SWITCH__
+	// fb size is currently 1280X720
+	qglViewport( 0, 720 - glConfig.vidHeight, glConfig.vidWidth, glConfig.vidHeight );
+	qglScissor( 0, 720 - glConfig.vidHeight, glConfig.vidWidth, glConfig.vidHeight );
+#else
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
+#endif
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
 	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);

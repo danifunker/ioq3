@@ -428,6 +428,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+#all	:	shaders $(OUTPUT).pfs0 $(OUTPUT).nro # uncomment this if building ref_gl2 and comment the line below
 all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
 
 $(OUTPUT).pfs0	:	$(OUTPUT).nso

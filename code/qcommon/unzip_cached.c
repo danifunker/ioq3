@@ -379,8 +379,8 @@ local uLong unzlocal_SearchCentralDir(pzlib_filefunc_def,filestream)
     return uPosFound;
 }
 
-#define MAX_ZIPS_OPEN 3
-#define ZIP_CACHE_SIZE 32
+#define MAX_ZIPS_OPEN 4
+#define ZIP_CACHE_SIZE 16
 
 static struct unz_cache_s {
     int alive;
@@ -389,6 +389,7 @@ static struct unz_cache_s {
     unzFile uf;
     unzFile uf_orig;
     uLong pos;
+    long filepos;
 } unz_cache[ZIP_CACHE_SIZE];
 
 static int unz_zips_open = 0;

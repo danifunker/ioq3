@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <switch.h>
 
 #include "../renderercommon/tr_common.h"
 #include "../sys/sys_local.h"
@@ -93,7 +94,7 @@ switch egl stuff
 static void SetMesaConfig(void)
 {
 	// Uncomment below to disable error checking and save CPU time (useful for production):
-	// setenv("MESA_NO_ERROR", "1", 1);
+	setenv("MESA_NO_ERROR", "1", 1);
 
 	// Uncomment below to enable Mesa logging:
 	// setenv("EGL_LOG_LEVEL", "debug", 1);
@@ -301,7 +302,7 @@ static void GLimp_DetectAvailableModes(void)
 		return;
 	}
 
-	modes = SDL_calloc( (size_t)numSDLModes, sizeof( SDL_Rect ) );
+	modes = SDL_calloc( (size_t)numSDLModes + 5, sizeof( SDL_Rect ) );
 	if ( !modes )
 	{
 		ri.Error( ERR_FATAL, "Out of memory" );
@@ -339,6 +340,28 @@ static void GLimp_DetectAvailableModes(void)
 		modes[ numModes ].h = mode.h;
 		numModes++;
 	}
+
+	// SDL only reports 1280x720 now, so we must add more modes manually
+
+	modes[ numModes ].w = 640;
+	modes[ numModes ].h = 360;
+	numModes++;
+
+	modes[ numModes ].w = 768;
+	modes[ numModes ].h = 432;
+	numModes++;
+
+	modes[ numModes ].w = 1024;
+	modes[ numModes ].h = 576;
+	numModes++;
+
+	modes[ numModes ].w = 1280;
+	modes[ numModes ].h = 720;
+	numModes++;
+
+	modes[ numModes ].w = 1920;
+	modes[ numModes ].h = 1080;
+	numModes++;
 
 	if( numModes > 1 )
 		qsort( modes, numModes, sizeof( SDL_Rect ), GLimp_CompareModes );
@@ -610,6 +633,10 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 			GLimp_ClearProcAddresses();
 		}
 	}
+
+	eglSwapInterval( s_display, r_swapInterval->integer );
+
+	gfxConfigureResolution( glConfig.vidWidth, glConfig.vidHeight );
 
 	qglClearColor( 0.5, 0.5, 0.5, 1 );
 	qglClear( GL_COLOR_BUFFER_BIT );
