@@ -37,6 +37,112 @@ APP_VERSION	:=	0.1.0
 TARGET		:=	ioquake3nx
 BUILD		:=	build
 SOURCES		:=
+
+
+GL1_SOURCEFILES	:=\
+	code/renderergl1/tr_altivec.o \
+	code/renderergl1/tr_animation.o \
+	code/renderergl1/tr_backend.o \
+	code/renderergl1/tr_bsp.o \
+	code/renderergl1/tr_cmds.o \
+	code/renderergl1/tr_curve.o \
+	code/renderergl1/tr_flares.o \
+	code/renderergl1/tr_font.o \
+	code/renderergl1/tr_image.o \
+	code/renderercommon/tr_image_bmp.c \
+	code/renderercommon/tr_image_jpg.c \
+	code/renderercommon/tr_image_pcx.c \
+	code/renderercommon/tr_image_png.c \
+	code/renderercommon/tr_image_tga.c \
+	code/renderergl1/tr_init.o \
+	code/renderergl1/tr_light.o \
+	code/renderergl1/tr_main.o \
+	code/renderergl1/tr_marks.o \
+	code/renderergl1/tr_mesh.o \
+	code/renderergl1/tr_model.o \
+	code/renderergl1/tr_model_iqm.o \
+	code/renderercommon/tr_noise.c \
+	code/renderergl1/tr_scene.o \
+	code/renderergl1/tr_shade.o \
+	code/renderergl1/tr_shade_calc.o \
+	code/renderergl1/tr_shader.o \
+	code/renderergl1/tr_shadows.o \
+	code/renderergl1/tr_sky.o \
+	code/renderergl1/tr_surface.o \
+	code/renderergl1/tr_world.o \
+	code/glad/glad.c
+
+# this one is more fancy, but only works if there's enough memory
+# ie you'll have to run ioquake3 as a regular app instead of an applet
+GL2_SOURCEFILES	:=\
+	code/renderergl2/tr_animation.o \
+	code/renderergl2/tr_backend.o \
+	code/renderergl2/tr_bsp.o \
+	code/renderergl2/tr_cmds.o \
+	code/renderergl2/tr_curve.o \
+	code/renderergl2/tr_dsa.o \
+	code/renderergl2/tr_extramath.o \
+	code/renderergl2/tr_extensions.o \
+	code/renderergl2/tr_fbo.o \
+	code/renderergl2/tr_flares.o \
+	code/renderergl2/tr_font.o \
+	code/renderergl2/tr_glsl.o \
+	code/renderergl2/tr_image.o \
+	code/renderercommon/tr_image_bmp.o \
+	code/renderercommon/tr_image_jpg.o \
+	code/renderercommon/tr_image_pcx.o \
+	code/renderercommon/tr_image_png.o \
+	code/renderercommon/tr_image_tga.o \
+	code/renderergl2/tr_image_dds.o \
+	code/renderergl2/tr_init.o \
+	code/renderergl2/tr_light.o \
+	code/renderergl2/tr_main.o \
+	code/renderergl2/tr_marks.o \
+	code/renderergl2/tr_mesh.o \
+	code/renderergl2/tr_model.o \
+	code/renderergl2/tr_model_iqm.o \
+	code/renderercommon/tr_noise.o \
+	code/renderergl2/tr_postprocess.o \
+	code/renderergl2/tr_scene.o \
+	code/renderergl2/tr_shade.o \
+	code/renderergl2/tr_shade_calc.o \
+	code/renderergl2/tr_shader.o \
+	code/renderergl2/tr_shadows.o \
+	code/renderergl2/tr_sky.o \
+	code/renderergl2/tr_surface.o \
+	code/renderergl2/tr_vbo.o \
+	code/renderergl2/tr_world.o \
+	code/glad/glad.c \
+	\
+	code/renderergl2/glsl/bokeh_fp.c \
+	code/renderergl2/glsl/bokeh_vp.c \
+	code/renderergl2/glsl/calclevels4x_fp.c \
+	code/renderergl2/glsl/calclevels4x_vp.c \
+	code/renderergl2/glsl/depthblur_fp.c \
+	code/renderergl2/glsl/depthblur_vp.c \
+	code/renderergl2/glsl/dlight_fp.c \
+	code/renderergl2/glsl/dlight_vp.c \
+	code/renderergl2/glsl/down4x_fp.c \
+	code/renderergl2/glsl/down4x_vp.c \
+	code/renderergl2/glsl/fogpass_fp.c \
+	code/renderergl2/glsl/fogpass_vp.c \
+	code/renderergl2/glsl/generic_fp.c \
+	code/renderergl2/glsl/generic_vp.c \
+	code/renderergl2/glsl/lightall_fp.c \
+	code/renderergl2/glsl/lightall_vp.c \
+	code/renderergl2/glsl/pshadow_fp.c \
+	code/renderergl2/glsl/pshadow_vp.c \
+	code/renderergl2/glsl/shadowfill_fp.c \
+	code/renderergl2/glsl/shadowfill_vp.c \
+	code/renderergl2/glsl/shadowmask_fp.c \
+	code/renderergl2/glsl/shadowmask_vp.c \
+	code/renderergl2/glsl/ssao_fp.c \
+	code/renderergl2/glsl/ssao_vp.c \
+	code/renderergl2/glsl/texturecolor_fp.c \
+	code/renderergl2/glsl/texturecolor_vp.c \
+	code/renderergl2/glsl/tonemap_fp.c \
+	code/renderergl2/glsl/tonemap_vp.c
+
 SOURCEFILES	:= \
 	code/client/cl_cgame.c \
 	code/client/cl_cin.c \
@@ -143,99 +249,40 @@ SOURCEFILES	:= \
 	code/sys/sys_nx.c \
 	code/sys/con_passive.c \
 	\
-	code/renderergl1/tr_altivec.o \
-	code/renderergl1/tr_animation.o \
-	code/renderergl1/tr_backend.o \
-	code/renderergl1/tr_bsp.o \
-	code/renderergl1/tr_cmds.o \
-	code/renderergl1/tr_curve.o \
-	code/renderergl1/tr_flares.o \
-	code/renderergl1/tr_font.o \
-	code/renderergl1/tr_image.o \
-	code/renderercommon/tr_image_bmp.c \
-	code/renderercommon/tr_image_jpg.c \
-	code/renderercommon/tr_image_pcx.c \
-	code/renderercommon/tr_image_png.c \
-	code/renderercommon/tr_image_tga.c \
-	code/renderergl1/tr_init.o \
-	code/renderergl1/tr_light.o \
-	code/renderergl1/tr_main.o \
-	code/renderergl1/tr_marks.o \
-	code/renderergl1/tr_mesh.o \
-	code/renderergl1/tr_model.o \
-	code/renderergl1/tr_model_iqm.o \
-	code/renderercommon/tr_noise.c \
-	code/renderergl1/tr_scene.o \
-	code/renderergl1/tr_shade.o \
-	code/renderergl1/tr_shade_calc.o \
-	code/renderergl1/tr_shader.o \
-	code/renderergl1/tr_shadows.o \
-	code/renderergl1/tr_sky.o \
-	code/renderergl1/tr_surface.o \
-	code/renderergl1/tr_world.o \
-	code/glad/glad.c \
-	\
 	code/sdl/sdl_gamma.c \
 	code/sdl/sdl_egl_glimp.c \
 	\
-#	code/renderergl2/glsl/bokeh_fp.c \
-#	code/renderergl2/glsl/bokeh_vp.c \
-#	code/renderergl2/glsl/calclevels4x_fp.c \
-#	code/renderergl2/glsl/calclevels4x_vp.c \
-#	code/renderergl2/glsl/depthblur_fp.c \
-#	code/renderergl2/glsl/depthblur_vp.c \
-#	code/renderergl2/glsl/dlight_fp.c \
-#	code/renderergl2/glsl/dlight_vp.c \
-#	code/renderergl2/glsl/down4x_fp.c \
-#	code/renderergl2/glsl/down4x_vp.c \
-#	code/renderergl2/glsl/fogpass_fp.c \
-#	code/renderergl2/glsl/fogpass_vp.c \
-#	code/renderergl2/glsl/generic_fp.c \
-#	code/renderergl2/glsl/generic_vp.c \
-#	code/renderergl2/glsl/lightall_fp.c \
-#	code/renderergl2/glsl/lightall_vp.c \
-#	code/renderergl2/glsl/pshadow_fp.c \
-#	code/renderergl2/glsl/pshadow_vp.c \
-#	code/renderergl2/glsl/shadowfill_fp.c \
-#	code/renderergl2/glsl/shadowfill_vp.c \
-#	code/renderergl2/glsl/shadowmask_fp.c \
-#	code/renderergl2/glsl/shadowmask_vp.c \
-#	code/renderergl2/glsl/ssao_fp.c \
-#	code/renderergl2/glsl/ssao_vp.c \
-#	code/renderergl2/glsl/texturecolor_fp.c \
-#	code/renderergl2/glsl/texturecolor_vp.c \
-#	code/renderergl2/glsl/tonemap_fp.c \
-#	code/renderergl2/glsl/tonemap_vp.c
+	$(GL1_SOURCEFILES)
 
-GLSLFILES	:=
-#	code/renderergl2/glsl/bokeh_fp.glsl \
-#	code/renderergl2/glsl/bokeh_vp.glsl \
-#	code/renderergl2/glsl/calclevels4x_fp.glsl \
-#	code/renderergl2/glsl/calclevels4x_vp.glsl \
-#	code/renderergl2/glsl/depthblur_fp.glsl \
-#	code/renderergl2/glsl/depthblur_vp.glsl \
-#	code/renderergl2/glsl/dlight_fp.glsl \
-#	code/renderergl2/glsl/dlight_vp.glsl \
-#	code/renderergl2/glsl/down4x_fp.glsl \
-#	code/renderergl2/glsl/down4x_vp.glsl \
-#	code/renderergl2/glsl/fogpass_fp.glsl \
-#	code/renderergl2/glsl/fogpass_vp.glsl \
-#	code/renderergl2/glsl/generic_fp.glsl \
-#	code/renderergl2/glsl/generic_vp.glsl \
-#	code/renderergl2/glsl/lightall_fp.glsl \
-#	code/renderergl2/glsl/lightall_vp.glsl \
-#	code/renderergl2/glsl/pshadow_fp.glsl \
-#	code/renderergl2/glsl/pshadow_vp.glsl \
-#	code/renderergl2/glsl/shadowfill_fp.glsl \
-#	code/renderergl2/glsl/shadowfill_vp.glsl \
-#	code/renderergl2/glsl/shadowmask_fp.glsl \
-#	code/renderergl2/glsl/shadowmask_vp.glsl \
-#	code/renderergl2/glsl/ssao_fp.glsl \
-#	code/renderergl2/glsl/ssao_vp.glsl \
-#	code/renderergl2/glsl/texturecolor_fp.glsl \
-#	code/renderergl2/glsl/texturecolor_vp.glsl \
-#	code/renderergl2/glsl/tonemap_fp.glsl \
-#	code/renderergl2/glsl/tonemap_vp.glsl
+GLSLFILES	:=\
+	code/renderergl2/glsl/bokeh_fp.glsl \
+	code/renderergl2/glsl/bokeh_vp.glsl \
+	code/renderergl2/glsl/calclevels4x_fp.glsl \
+	code/renderergl2/glsl/calclevels4x_vp.glsl \
+	code/renderergl2/glsl/depthblur_fp.glsl \
+	code/renderergl2/glsl/depthblur_vp.glsl \
+	code/renderergl2/glsl/dlight_fp.glsl \
+	code/renderergl2/glsl/dlight_vp.glsl \
+	code/renderergl2/glsl/down4x_fp.glsl \
+	code/renderergl2/glsl/down4x_vp.glsl \
+	code/renderergl2/glsl/fogpass_fp.glsl \
+	code/renderergl2/glsl/fogpass_vp.glsl \
+	code/renderergl2/glsl/generic_fp.glsl \
+	code/renderergl2/glsl/generic_vp.glsl \
+	code/renderergl2/glsl/lightall_fp.glsl \
+	code/renderergl2/glsl/lightall_vp.glsl \
+	code/renderergl2/glsl/pshadow_fp.glsl \
+	code/renderergl2/glsl/pshadow_vp.glsl \
+	code/renderergl2/glsl/shadowfill_fp.glsl \
+	code/renderergl2/glsl/shadowfill_vp.glsl \
+	code/renderergl2/glsl/shadowmask_fp.glsl \
+	code/renderergl2/glsl/shadowmask_vp.glsl \
+	code/renderergl2/glsl/ssao_fp.glsl \
+	code/renderergl2/glsl/ssao_vp.glsl \
+	code/renderergl2/glsl/texturecolor_fp.glsl \
+	code/renderergl2/glsl/texturecolor_vp.glsl \
+	code/renderergl2/glsl/tonemap_fp.glsl \
+	code/renderergl2/glsl/tonemap_vp.glsl
 
 define DO_REF_STR
 @echo "REF_STR $<"
@@ -258,7 +305,7 @@ EXEFS_SRC	:=	exefs_src
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE -mcpu=cortex-a57+crc+fp+simd
 
-CFLAGS	:=	-g -Wall -O3 -fno-strict-aliasing -fomit-frame-pointer -ffunction-sections \
+CFLAGS	:=	-g -Wall -O3 -ffast-math -fno-strict-aliasing -fomit-frame-pointer -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__

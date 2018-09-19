@@ -568,7 +568,9 @@ Unix specific initialisation
 void Sys_PlatformInit( void )
 {
 	socketInitializeDefault();
+#ifdef NXLINK_DEBUG
 	nxlinkStdio();
+#endif
 
 	stdinIsATTY = qfalse;
 }

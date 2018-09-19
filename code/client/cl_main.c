@@ -3732,6 +3732,11 @@ void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit)
 
 	noGameRestart = quit;
 
+#ifdef __SWITCH__
+	extern qboolean glimp_shutdown_full;
+	glimp_shutdown_full = quit;
+#endif
+
 	if(disconnect)
 		CL_Disconnect(qtrue);
 	

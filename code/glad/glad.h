@@ -1517,10 +1517,10 @@ GLAPI PFNGLENABLEPROC glad_glEnable;
 #define glEnable glad_glEnable
 typedef void (APIENTRYP PFNGLFINISHPROC)(void);
 GLAPI PFNGLFINISHPROC glad_glFinish;
-#define glFinish glad_glFlush // HACK HACK HACK: glFinish is borked on switch
+#define glFinish glad_glFinish
 typedef void (APIENTRYP PFNGLFLUSHPROC)(void);
 GLAPI PFNGLFLUSHPROC glad_glFlush;
-#define glFlush do {} while(0); // HACK HACK HACK: don't call flush often
+#define glFlush glad_glFlush
 typedef void (APIENTRYP PFNGLBLENDFUNCPROC)(GLenum sfactor, GLenum dfactor);
 GLAPI PFNGLBLENDFUNCPROC glad_glBlendFunc;
 #define glBlendFunc glad_glBlendFunc

@@ -380,7 +380,7 @@ local uLong unzlocal_SearchCentralDir(pzlib_filefunc_def,filestream)
 }
 
 #define MAX_ZIPS_OPEN 3
-#define ZIP_CACHE_SIZE 64
+#define ZIP_CACHE_SIZE 32
 
 static struct unz_cache_s {
     int alive;

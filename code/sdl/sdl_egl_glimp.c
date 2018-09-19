@@ -201,6 +201,8 @@ static void DeinitEGL (void)
 	}
 }
 
+qboolean glimp_shutdown_full = qfalse;
+
 /*
 ===============
 GLimp_Shutdown
@@ -210,12 +212,16 @@ void GLimp_Shutdown( void )
 {
 	ri.IN_Shutdown();
 
-	if( SDL_renderer ) SDL_DestroyRenderer( SDL_renderer ), SDL_renderer = NULL;
-	if( SDL_window ) SDL_DestroyWindow( SDL_window ), SDL_window = NULL;
+	if( glimp_shutdown_full )
+	{
 
-	DeinitEGL();
+		if( SDL_renderer ) SDL_DestroyRenderer( SDL_renderer ), SDL_renderer = NULL;
+		if( SDL_window ) SDL_DestroyWindow( SDL_window ), SDL_window = NULL;
 
-	SDL_QuitSubSystem( SDL_INIT_VIDEO );
+		DeinitEGL();
+
+		SDL_QuitSubSystem( SDL_INIT_VIDEO );
+	}
 }
 
 /*
@@ -504,8 +510,6 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 	// If a window exists, note its display index
 	if( SDL_window != NULL )
 	{
-		// actually fuck off and return here, I'll fix it later
-		return RSERR_OK;
 		display = SDL_GetWindowDisplayIndex( SDL_window );
 		if( display < 0 )
 		{
@@ -569,40 +573,45 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 	glConfig.stencilBits = 8;
 	glConfig.stereoEnabled = qfalse;
 
-	if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
-			glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
+	if( SDL_window == NULL )
 	{
-		ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
-		return RSERR_UNKNOWN;
+		// only init all this stuff if we haven't before, reinit is dangerous
+
+		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
+				glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
+		{
+			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
+			return RSERR_UNKNOWN;
+		}
+
+		SDL_renderer = SDL_CreateRenderer( SDL_window, -1, 0 );
+		if( !SDL_renderer)
+			ri.Printf( PRINT_DEVELOPER, "SDL_CreateRenderer failed: %s\n", SDL_GetError( ) );
+
+		InitEGL();
+		printf("gladLoadGL(): %d\n", gladLoadGL());
+
+		const char *renderer;
+		if ( GLimp_GetProcAddresses( fixedFunction ) )
+		{
+			renderer = (const char *)qglGetString(GL_RENDERER);
+		}
+		else
+		{
+			ri.Printf( PRINT_ALL, "GLimp_GetProcAddresses() failed for OpenGL 3.2 core context\n" );
+			renderer = NULL;
+		}
+
+		if (!renderer || (strstr(renderer, "Software Renderer") || strstr(renderer, "Software Rasterizer")))
+		{
+			if ( renderer )
+				ri.Printf(PRINT_ALL, "GL_RENDERER is %s, rejecting context\n", renderer);
+
+			GLimp_ClearProcAddresses();
+		}
 	}
 
-	SDL_renderer = SDL_CreateRenderer( SDL_window, -1, 0 );
-	if( !SDL_renderer)
-		ri.Printf( PRINT_DEVELOPER, "SDL_CreateRenderer failed: %s\n", SDL_GetError( ) );
-
-	InitEGL();
-	printf("gladLoadGL(): %d\n", gladLoadGL());
-
-	const char *renderer;
-	if ( GLimp_GetProcAddresses( fixedFunction ) )
-	{
-		renderer = (const char *)qglGetString(GL_RENDERER);
-	}
-	else
-	{
-		ri.Printf( PRINT_ALL, "GLimp_GetProcAddresses() failed for OpenGL 3.2 core context\n" );
-		renderer = NULL;
-	}
-
-	if (!renderer || (strstr(renderer, "Software Renderer") || strstr(renderer, "Software Rasterizer")))
-	{
-		if ( renderer )
-			ri.Printf(PRINT_ALL, "GL_RENDERER is %s, rejecting context\n", renderer);
-
-		GLimp_ClearProcAddresses();
-	}
-
-	qglClearColor( 1, 0, 0, 1 );
+	qglClearColor( 0.5, 0.5, 0.5, 1 );
 	qglClear( GL_COLOR_BUFFER_BIT );
 	eglSwapBuffers( s_display, s_surface );
 
