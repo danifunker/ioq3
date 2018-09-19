@@ -263,12 +263,27 @@ qboolean SNDDMA_Init(void)
 	// 32768 is what the OSS driver filled in here on my system. I don't
 	//  know if it's a good value overall, but at least we know it's
 	//  reasonable...this is why I let the user override.
+#ifdef __SWITCH__
+	// this is from yquake2 and it works, while the stuff in #else causes
+	// nasty crackles
+	tmp = (obtained.samples * obtained.channels) * 10;
+
+	if (tmp & (tmp - 1))
+	{	/* make it a power of two */
+		int val = 1;
+		while (val < tmp)
+			val <<= 1;
+
+		tmp = val;
+	}
+#else
 	tmp = s_sdlMixSamps->value;
 	if (!tmp)
 		tmp = (obtained.samples * obtained.channels) * 10;
 
 	// samples must be divisible by number of channels
 	tmp -= tmp % obtained.channels;
+#endif
 
 	dmapos = 0;
 	dma.samplebits = SDL_AUDIO_BITSIZE(obtained.format);
