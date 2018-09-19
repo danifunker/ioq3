@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "unzip.h"
+#include <errno.h>
 
 /*
 =============================================================================
@@ -547,8 +548,8 @@ qboolean FS_CreatePath (char *OSPath) {
 			// create the directory
 			*ofs = 0;
 			if (!Sys_Mkdir (path)) {
-				Com_Error( ERR_FATAL, "FS_CreatePath: failed to create path \"%s\"",
-					path );
+				// Com_Error( ERR_FATAL, "FS_CreatePath: failed to create path \"%s\"",
+				//	path );
 			}
 			*ofs = PATH_SEP;
 		}

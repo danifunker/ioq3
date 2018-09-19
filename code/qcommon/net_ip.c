@@ -63,6 +63,10 @@ static qboolean	winsockInitialized = qfalse;
 #		define _BSD_SOCKLEN_T_
 #	endif
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #	include <sys/socket.h>
 #	include <errno.h>
 #	include <netdb.h>
@@ -73,7 +77,7 @@ static qboolean	winsockInitialized = qfalse;
 #	include <sys/types.h>
 #	include <sys/time.h>
 #	include <unistd.h>
-#	if !defined(__sun) && !defined(__sgi)
+#	if !defined(__sun) && !defined(__sgi) && !defined(__SWITCH__)
 #		include <ifaddrs.h>
 #	endif
 
@@ -118,8 +122,10 @@ static SOCKET	ip6_socket = INVALID_SOCKET;
 static SOCKET	socks_socket = INVALID_SOCKET;
 static SOCKET	multicast6_socket = INVALID_SOCKET;
 
+#ifndef __SWITCH__
 // Keep track of currently joined multicast group.
 static struct ipv6_mreq curgroup;
+#endif
 // And the currently bound address.
 static struct sockaddr_in6 boundto;
 
@@ -226,12 +232,14 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s ) {
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 		((struct sockaddr_in6 *)s)->sin6_scope_id = a->scope_id;
 	}
+#ifndef __SWITCH__
 	else if(a->type == NA_MULTICAST6)
 	{
 		((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_addr = curgroup.ipv6mr_multiaddr;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 	}
+#endif
 }
 
 
@@ -975,7 +983,7 @@ void NET_SetMulticast6(void)
 		
 		return;
 	}
-	
+#ifndef __SWITCH__
 	memcpy(&curgroup.ipv6mr_multiaddr, &addr.sin6_addr, sizeof(curgroup.ipv6mr_multiaddr));
 
 	if(*net_mcast6iface->string)
@@ -988,6 +996,7 @@ void NET_SetMulticast6(void)
 	}
 	else
 		curgroup.ipv6mr_interface = 0;
+#endif
 }
 
 /*
@@ -1002,7 +1011,8 @@ void NET_JoinMulticast6(void)
 	
 	if(ip6_socket == INVALID_SOCKET || multicast6_socket != INVALID_SOCKET || (net_enabled->integer & NET_DISABLEMCAST))
 		return;
-	
+
+#ifndef __SWITCH__
 	if(IN6_IS_ADDR_MULTICAST(&boundto.sin6_addr) || IN6_IS_ADDR_UNSPECIFIED(&boundto.sin6_addr))
 	{
 		// The way the socket was bound does not prohibit receiving multi-cast packets. So we don't need to open a new one.
@@ -1044,17 +1054,19 @@ void NET_JoinMulticast6(void)
 			return;
 		}
 	}
+#endif
 }
 
 void NET_LeaveMulticast6()
 {
 	if(multicast6_socket != INVALID_SOCKET)
 	{
+#ifndef __SWITCH__
 		if(multicast6_socket != ip6_socket)
 			closesocket(multicast6_socket);
 		else
 			setsockopt(multicast6_socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *) &curgroup, sizeof(curgroup));
-
+#endif
 		multicast6_socket = INVALID_SOCKET;
 	}
 }
@@ -1418,8 +1430,9 @@ NET_GetCvars
 static qboolean NET_GetCvars( void ) {
 	int modified;
 
-#ifdef DEDICATED
+#if defined(DEDICATED) || defined(__SWITCH__)
 	// I want server owners to explicitly turn on ipv6 support.
+	// the Switch also doesn't support ipv6
 	net_enabled = Cvar_Get( "net_enabled", "1", CVAR_LATCH | CVAR_ARCHIVE );
 #else
 	/* End users have it enabled so they can connect to ipv6-only hosts, but ipv4 will be
