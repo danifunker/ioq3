@@ -281,15 +281,14 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 	}
 
 	static char buf[2048];
-	strncpy(buf, s, 2047);
+	strncpy(buf, s, sizeof(buf) - 1);
 
 	// scronch the port part
 	unsigned short port = 0;
 	char *pport = strrchr(buf, ':');
 	if (pport && pport[0] && pport[1])
 	{
-		pport[0] = '\0';
-		pport++;
+		*pport++ = '\0';
 		sscanf(pport, "%hu", &port);
 	}
 
@@ -416,13 +415,6 @@ Sys_SockaddrToString
 */
 static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input)
 {
-	socklen_t inputlen;
-
-	if (input->sa_family == AF_INET6)
-		inputlen = sizeof(struct sockaddr_in6);
-	else
-		inputlen = sizeof(struct sockaddr_in);
-
 #ifdef __SWITCH__
 	if (input->sa_family == AF_INET6)
 	{
@@ -430,19 +422,20 @@ static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input
 		return;
 	}
 
-	static char buf[2048];
 	struct sockaddr_in *sin = (struct sockaddr_in *)input;
-
-	// check if this is an IPv4 IP
-	if (inet_ntop(input->sa_family, &(sin->sin_addr), buf, 2047))
-	{
-		snprintf(dest, destlen, "%s", buf);
+	if (inet_ntop(input->sa_family, &(sin->sin_addr), dest, destlen))
 		return;
-	}
 
 	Com_Printf("Sys_SockaddrToString(): inet_ntop() failed: %s\n", strerror(errno));
 	if (destlen) *dest = '\0';
 #else
+	socklen_t inputlen;
+
+	if (input->sa_family == AF_INET6)
+		inputlen = sizeof(struct sockaddr_in6);
+	else
+		inputlen = sizeof(struct sockaddr_in);
+
 	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0)
 		*dest = '\0';
 #endif
