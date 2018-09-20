@@ -385,11 +385,11 @@ local uLong unzlocal_SearchCentralDir(pzlib_filefunc_def,filestream)
 static struct unz_cache_s {
     int alive;
     int open;
+    int reading;
     char path[MAX_OSPATH];
     unzFile uf;
     unzFile uf_orig;
     uLong pos;
-    long filepos;
 } unz_cache[ZIP_CACHE_SIZE];
 
 static int unz_zips_open = 0;
@@ -417,6 +417,8 @@ static void freeZipCacheSpace (void)
     {
         if (unz_cache[i].alive && unz_cache[i].open)
         {
+            // if there's a stream read going on, don't close it
+            if (unz_cache[i].reading) continue;
             // save current file offset for later revival
             unz_cache[i].pos = unzGetOffset(unz_cache[i].uf);
             unzCloseUncached(unz_cache[i].uf);
@@ -480,10 +482,7 @@ static unzFile cacheZipByDescriptor (unzFile uf)
 {
     if (!uf) return NULL;
 
-    unsigned char *ptr_start = (unsigned char *)unz_cache;
-    unsigned char *ptr_end = (unsigned char *)(unz_cache + ZIP_CACHE_SIZE);
-    unsigned char *ufp = (unsigned char *)uf;
-    if (ufp < ptr_start || ufp >= ptr_end)
+    if ((struct unz_cache_s *)uf < unz_cache || (struct unz_cache_s *)uf >= unz_cache + ZIP_CACHE_SIZE)
     {
         /*
         // check if this is a valid actual descriptor
@@ -511,7 +510,7 @@ static unzFile cacheZipByDescriptor (unzFile uf)
 
     if (!cacheptr->alive)
     {
-        fprintf(stderr, "cacheZipByDescriptor(): dead pseudodescriptor %p\n", ufp);
+        fprintf(stderr, "cacheZipByDescriptor(): dead pseudodescriptor %p\n", uf);
         return NULL;
     }
 
@@ -531,12 +530,9 @@ static int uncacheZip (unzFile uf)
 {
     if (!uf) return UNZ_PARAMERROR;
 
-    unsigned char *ptr_start = (unsigned char *)unz_cache;
-    unsigned char *ptr_end = (unsigned char *)(unz_cache + ZIP_CACHE_SIZE);
-    unsigned char *ufp = (unsigned char *)uf;
-    if (ufp < ptr_start || ufp >= ptr_end)
+    if ((struct unz_cache_s *)uf < unz_cache || (struct unz_cache_s *)uf >= unz_cache + ZIP_CACHE_SIZE)
     {
-        fprintf(stderr, "uncacheZip(): invalid pseudodescriptor %p\n", ufp);
+        fprintf(stderr, "uncacheZip(): invalid pseudodescriptor %p\n", uf);
         return UNZ_PARAMERROR;
     }
 
@@ -544,7 +540,7 @@ static int uncacheZip (unzFile uf)
 
     if (!cacheptr->alive)
     {
-        fprintf(stderr, "uncacheZip(): dead pseudodescriptor %p\n", ufp);
+        fprintf(stderr, "uncacheZip(): dead pseudodescriptor %p\n", uf);
         return UNZ_PARAMERROR;
     }
 
@@ -1473,6 +1469,9 @@ extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
         return UNZ_PARAMERROR;
 #    endif
 
+    if ((struct unz_cache_s *)file > unz_cache && (struct unz_cache_s *)file < unz_cache + ZIP_CACHE_SIZE)
+        ((struct unz_cache_s *)file)->reading = 1;
+
     file = cacheZipByDescriptor(file);
     if (file==NULL)
         return UNZ_PARAMERROR;
@@ -1906,6 +1905,10 @@ extern int ZEXPORT unzCloseCurrentFile (file)
 
     unz_s* s;
     file_in_zip_read_info_s* pfile_in_zip_read_info;
+
+    if ((struct unz_cache_s *)file > unz_cache && (struct unz_cache_s *)file < unz_cache + ZIP_CACHE_SIZE)
+        ((struct unz_cache_s *)file)->reading = 0;
+
     file = cacheZipByDescriptor(file);
     if (file==NULL)
         return UNZ_PARAMERROR;
