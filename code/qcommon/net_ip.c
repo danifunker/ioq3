@@ -258,7 +258,73 @@ static void SockadrToNetadr( struct sockaddr *s, netadr_t *a ) {
 	}
 }
 
+#ifdef __SWITCH__
 
+// apparently getaddrinfo is partially broken or something,
+// so here's a thing that uses gethostbyname instead
+
+static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int sadr_len, sa_family_t family)
+{
+	if (!sadr || !s)
+		return qfalse;
+
+	memset(sadr, 0, sizeof(*sadr));
+
+	if (family == AF_UNSPEC)
+	{
+		family = AF_INET;
+	}
+	else if (family == AF_INET6)
+	{
+		Com_Printf("Sys_StringToSockaddr('%s'): IPv6 stuff not implemented\n", s);
+		return qfalse;
+	}
+
+	static char buf[2048];
+	strncpy(buf, s, 2047);
+
+	// scronch the port part
+	unsigned short port = 0;
+	char *pport = strrchr(buf, ':');
+	if (pport && pport[0] && pport[1])
+	{
+		pport[0] = '\0';
+		pport++;
+		sscanf(pport, "%hu", &port);
+	}
+
+	struct sockaddr_in *sin = (struct sockaddr_in *)sadr;
+
+	// check if it's just an IP
+	struct in_addr inaddr = { 0 };
+	if (inet_pton(AF_INET, buf, &inaddr))
+	{
+		sin->sin_family = AF_INET;
+		sin->sin_port = htons(port);
+		sin->sin_addr = inaddr;
+		return qtrue;
+	}
+
+  // try to resolve it as a hostname
+	struct hostent *he = gethostbyname(buf);
+	if (!he)
+	{
+		Com_Printf("Sys_StringToSockaddr('%s'): gethostbyname('%s') failed: %s\n",
+								s, buf, hstrerror(h_errno));
+		return qfalse;
+	}
+
+	sin->sin_family = AF_INET;
+	sin->sin_port = htons(port);
+	memcpy(&(sin->sin_addr), he->h_addr_list[0], he->h_length);
+
+	freehostent(he);
+
+	return qtrue;
+}
+
+#else
+  
 static struct addrinfo *SearchAddrInfo(struct addrinfo *hints, sa_family_t family)
 {
 	while(hints)
@@ -341,6 +407,8 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 	return qfalse;
 }
 
+#endif
+
 /*
 =============
 Sys_SockaddrToString
@@ -355,8 +423,29 @@ static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input
 	else
 		inputlen = sizeof(struct sockaddr_in);
 
+#ifdef __SWITCH__
+	if (input->sa_family == AF_INET6)
+	{
+		Com_Printf("Sys_SockaddrToString(): IPv6 stuff not implemented\n");
+		return;
+	}
+
+	static char buf[2048];
+	struct sockaddr_in *sin = (struct sockaddr_in *)input;
+
+	// check if this is an IPv4 IP
+	if (inet_ntop(input->sa_family, &(sin->sin_addr), buf, 2047))
+	{
+		snprintf(dest, destlen, "%s", buf);
+		return;
+	}
+
+	Com_Printf("Sys_SockaddrToString(): inet_ntop() failed: %s\n", strerror(errno));
+	if (destlen) *dest = '\0';
+#else
 	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0)
 		*dest = '\0';
+#endif
 }
 
 /*
