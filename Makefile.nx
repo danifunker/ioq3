@@ -204,8 +204,9 @@ SOURCEFILES	:= \
 	code/qcommon/q_math.c \
 	code/qcommon/q_shared.c \
 	\
-	code/qcommon/unzip_cached.c \
-	code/qcommon/ioapi.c \
+	code/qcommon/unzip.c \
+	code/qcommon/cached_stdio.c \
+	code/qcommon/ioapi_cached.c \
 	code/qcommon/puff.c \
 	code/qcommon/vm.c \
 	code/qcommon/vm_interpreted.c \
