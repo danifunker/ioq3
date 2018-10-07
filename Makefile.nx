@@ -297,7 +297,7 @@ VERSION		:=	1.36
 DATA		:=	data
 INCLUDES	:=	
 DEFINES		+=	-DUSE_CURL -DUSE_CODEC_VORBIS -DPRODUCT_VERSION=\"$(VERSION)\" -DARCH_STRING=\"aarch64\" \
-				-DBOTLIB -DNO_VM_COMPILED
+				-DBOTLIB -DNO_VM_COMPILED -DUSE_OPENAL
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
@@ -306,7 +306,7 @@ EXEFS_SRC	:=	exefs_src
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE -mcpu=cortex-a57+crc+fp+simd
 
-CFLAGS	:=	-g -Wall -O3 -ffast-math -fno-strict-aliasing -fomit-frame-pointer -ffunction-sections \
+CFLAGS	:=	-g -O3 -ffast-math -fno-strict-aliasing -fomit-frame-pointer -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
@@ -318,7 +318,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lSDL2main -lSDL2 -lEGL -lglapi -ldrm_nouveau \
+LIBS	:=	-lopenal-soft -lSDL2main -lSDL2 -lEGL -lglapi -ldrm_nouveau \
 		-lvorbisfile -lvorbis -logg -ljpeg -lcurl -lz -lnx -lm -lstdc++
 
 #---------------------------------------------------------------------------------

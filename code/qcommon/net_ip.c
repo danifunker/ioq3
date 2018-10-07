@@ -304,7 +304,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 		return qtrue;
 	}
 
-  // try to resolve it as a hostname
+	// try to resolve it as a hostname
 	struct hostent *he = gethostbyname(buf);
 	if (!he)
 	{
