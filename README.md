@@ -63,6 +63,13 @@ For Mac OS X, building a Universal Binary
   4. Copy the resulting ioquake3.app in /build/release-darwin-ub to your
      /Applications/ioquake3 folder.
 
+For Nintendo Switch:
+  1. Install and set up devkitA64.
+  2. Ensure you have the latest versions of the following libraries installed in your dkA64 environment:
+     libnx, switch-sdl2, switch-mesa, switch-libdrm_nouveau, switch-libjpeg-turbo, switch-zlib, switch-libogg, switch-libvorbis, switch-curl and [my fork of openal-soft](https://github.com/fgsfdsfgs/openal-soft)
+  3. Call `make -f Makefile.nx` in this directory. This will produce `ioquake3nx.nro`.
+  4. Refer to the installation instructions on the releases to install and run the game on your Switch.
+
 Installation, for *nix
   1. Set the COPYDIR variable in the shell to be where you installed Quake 3
      to. By default it will be /usr/local/games/quake3 if you haven't set it.
