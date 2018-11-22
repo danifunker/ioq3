@@ -681,8 +681,10 @@ int main( int argc, char **argv )
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 
-	extern void Sys_LaunchAutoupdater(int argc, char **argv);
-	Sys_LaunchAutoupdater(argc, argv);
+	extern void Sys_LaunchAutoupdater( int argc, char **argv );
+	Sys_LaunchAutoupdater( argc, argv );
+
+	appletLockExit( );
 
 #ifndef DEDICATED
 	// SDL version check
@@ -750,6 +752,8 @@ int main( int argc, char **argv )
 	{
 		Com_Frame( );
 	}
+
+	Sys_Quit( );
 
 	return 0;
 }

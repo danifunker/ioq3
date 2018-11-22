@@ -567,6 +567,7 @@ Unix specific initialisation
 */
 void Sys_PlatformInit( void )
 {
+	appletLockExit( );
 	socketInitializeDefault();
 #ifdef NXLINK_DEBUG
 	nxlinkStdio();
@@ -585,6 +586,7 @@ Unix specific deinitialisation
 void Sys_PlatformExit( void )
 {
 	socketExit();
+	appletUnlockExit( );
 }
 
 /*
