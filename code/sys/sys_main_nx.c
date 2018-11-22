@@ -684,8 +684,6 @@ int main( int argc, char **argv )
 	extern void Sys_LaunchAutoupdater( int argc, char **argv );
 	Sys_LaunchAutoupdater( argc, argv );
 
-	appletLockExit( );
-
 #ifndef DEDICATED
 	// SDL version check
 
