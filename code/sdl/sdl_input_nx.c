@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <switch.h>
 
 #include "../client/client.h"
 #include "../sys/sys_local.h"
@@ -56,6 +57,8 @@ static int in_eventTime = 0;
 static SDL_Window *SDL_window = NULL;
 
 #define CTRL(a) ((a)-'a'+1)
+
+static void IN_ShowOSK_f( void );
 
 /*
 ===============
@@ -432,7 +435,6 @@ static int hat_keys[16] = {
 	K_JOY19, K_JOY20
 };
 
-
 struct
 {
 	qboolean buttons[SDL_CONTROLLER_BUTTON_MAX + 1]; // +1 because old max was 16, current SDL_CONTROLLER_BUTTON_MAX is 15
@@ -764,6 +766,7 @@ static void IN_GamepadMove( void )
 	}
 
 	// HACK: in menus, also generate mouse events from some of the buttons and left analog
+	//       also translate dpad presses into arrow keys because UI progs don't recognize them
 	if (clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI ))
 	{
 		int mousedx = stick_state.oldaaxes[0];
@@ -773,9 +776,25 @@ static void IN_GamepadMove( void )
 			Com_QueueEvent( in_eventTime, SE_MOUSE, mousedx / 3072, mousedy / 3072, 0, NULL );
 
 		if (changed[SDL_CONTROLLER_BUTTON_A])
-			Com_QueueEvent(in_eventTime, SE_KEY, K_MOUSE2, stick_state.buttons[SDL_CONTROLLER_BUTTON_A], 0, NULL);
+			Com_QueueEvent( in_eventTime, SE_KEY, K_MOUSE2, stick_state.buttons[SDL_CONTROLLER_BUTTON_A], 0, NULL );
 		if (changed[SDL_CONTROLLER_BUTTON_B])
-			Com_QueueEvent(in_eventTime, SE_KEY, K_MOUSE1, stick_state.buttons[SDL_CONTROLLER_BUTTON_B], 0, NULL);
+			Com_QueueEvent( in_eventTime, SE_KEY, K_MOUSE1, stick_state.buttons[SDL_CONTROLLER_BUTTON_B], 0, NULL );
+
+		// show OSK if L is pressed in a menu
+		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER])
+			IN_ShowOSK_f( );
+		// use X to delete characters in menu fields
+		if (changed[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER])
+			Com_QueueEvent( in_eventTime, SE_CHAR, CTRL('h'), 0, 0, NULL );
+		// use dpad to control menu cursor
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_UP])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_UPARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_UP], 0, NULL );
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_DOWNARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_LEFT])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_LEFTARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_LEFT], 0, NULL );
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_RIGHT])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_RIGHTARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT], 0, NULL );
 	}
 }
 
@@ -1244,6 +1263,8 @@ void IN_Init( void *windowData )
 
 	Com_DPrintf( "\n------- Input Initialization -------\n" );
 
+	Cmd_AddCommand( "showosk", IN_ShowOSK_f );
+
 	in_keyboardDebug = Cvar_Get( "in_keyboardDebug", "0", CVAR_ARCHIVE );
 
 	// mouse variables
@@ -1292,4 +1313,52 @@ void IN_Restart( void )
 {
 	IN_ShutdownJoystick( );
 	IN_Init( SDL_window );
+}
+
+/*
+===============
+IN_SwitchKeyboard
+===============
+*/
+void IN_SwitchKeyboard( char *out, int out_len )
+{
+	SwkbdConfig kbd;
+	char tmp_out[out_len + 1];
+	Result rc;
+	tmp_out[0] = 0;
+	rc = swkbdCreate( &kbd, 0 );
+	if (R_SUCCEEDED( rc )) {
+		swkbdConfigMakePresetDefault( &kbd );
+		swkbdConfigSetInitialText( &kbd, out );
+		rc = swkbdShow( &kbd, tmp_out, out_len );
+		if (R_SUCCEEDED( rc ))
+			strncpy( out, tmp_out, out_len ); 
+		swkbdClose( &kbd );
+	}
+}
+
+/*
+=============
+IN_ShowOSK_f
+=============
+*/
+static void IN_ShowOSK_f( void )
+{
+	static char buffer[1024];
+	int len = 0;
+	SDL_Event ev;
+	buffer[0] = '\0';
+
+	IN_SwitchKeyboard( buffer, sizeof( buffer )-1 );
+	len = strlen( buffer );
+
+	ev.type = SDL_TEXTINPUT;
+	ev.text.type = SDL_TEXTINPUT;
+	ev.text.timestamp = SDL_GetTicks();
+	ev.text.windowID = 0;
+	for (int i = 0; i < len; i += 31)
+	{
+		strncpy( ev.text.text, buffer + i, sizeof( ev.text.text )-1 );
+		SDL_PeepEvents( &ev, 1, SDL_ADDEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT );
+	}
 }
