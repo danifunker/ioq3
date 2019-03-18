@@ -108,7 +108,7 @@ static void SetMesaConfig(void)
 	// setenv("MESA_GL_VERSION_OVERRIDE", "3.2COMPAT", 1);
 }
 
-static qboolean InitEGL(void)
+static qboolean InitEGL(NWindow *win)
 {
 	SetMesaConfig();
 
@@ -148,7 +148,7 @@ static qboolean InitEGL(void)
 	}
 
 	// Create an EGL window surface
-	s_surface = eglCreateWindowSurface(s_display, config, (char*)"", NULL);
+	s_surface = eglCreateWindowSurface(s_display, config, win, NULL);
 	if (!s_surface)
 	{
 		ri.Printf( PRINT_ALL, "Surface creation failed! error: %d", eglGetError() );
@@ -612,7 +612,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		if( !SDL_renderer)
 			ri.Printf( PRINT_DEVELOPER, "SDL_CreateRenderer failed: %s\n", SDL_GetError( ) );
 
-		InitEGL();
+		InitEGL(nwindowGetDefault());
 		printf("gladLoadGL(): %d\n", gladLoadGL());
 
 		const char *renderer;
