@@ -1066,6 +1066,9 @@ void IN_Init( void *windowData );
 void IN_Frame( void );
 void IN_Shutdown( void );
 void IN_Restart( void );
+#ifdef __SWITCH__
+void IN_SwitchKeyboard( char *out, int out_len );
+#endif
 
 /*
 ==============================================================
