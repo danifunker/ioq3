@@ -453,14 +453,14 @@ static void IN_InitKeys( void )
 {
 	SDL_StartTextInput( );
 
-  int i;
-  for (i = 0; i < K_LAST_KEY; i++)
+	int i;
+	for (i = 0; i < K_LAST_KEY; i++)
 		keyboardShiftMap[i] = i;
 
-  for (i='a' ; i<='z' ; i++)
+	for (i='a' ; i<='z' ; i++)
 		keyboardShiftMap[i] = i - 'a' + 'A';
 
-  keyboardShiftMap['1'] = '!';
+	keyboardShiftMap['1'] = '!';
 	keyboardShiftMap['2'] = '@';
 	keyboardShiftMap['3'] = '#';
 	keyboardShiftMap['4'] = '$';
@@ -835,13 +835,13 @@ static void IN_GamepadMove( void )
 		if (changed[SDL_CONTROLLER_BUTTON_DPAD_RIGHT])
 			Com_QueueEvent( in_eventTime, SE_KEY, K_RIGHTARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT], 0, NULL );
 	}
-  else
-  {
-    // In-game, dpad down to open console
+	else
+	{
+		// In-game, dpad down to open console
 		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN]) {
-      Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
-    }
-  }
+			Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
+		}
+	}
 }
 
 
@@ -1145,17 +1145,17 @@ static void IN_ProcessEvents( void )
 								Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, qfalse, 0, NULL );
 							}
 							else if( utf32 == '\n' )
-              {
+							{
 								Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, qtrue, 0, NULL );
 								Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, qfalse, 0, NULL );
-              }
-              else
-              {
+							}
+							else
+							{
 								Com_QueueEvent( in_eventTime, SE_CHAR, utf32, 0, 0, NULL );
-              }
+							}
 						}
-          }
-        }
+					}
+				}
 				break;
 
 			case SDL_MOUSEMOTION:
@@ -1342,7 +1342,7 @@ void IN_Init( void *windowData )
 
 	IN_InitJoystick( );
 
-  IN_InitKeys( );
+	IN_InitKeys( );
 
 	Com_DPrintf( "------------------------------------\n" );
 }
