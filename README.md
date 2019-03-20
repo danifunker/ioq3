@@ -156,6 +156,16 @@ The defaults for these variables differ depending on the target platform.
   in_joystickUseAnalog              - Do not translate joystick axis events
                                       to keyboard commands
 
+  in_gyromouse                      - Set to 1 to enable use of gyroscope
+                                      sensor as mouse freelook (gyro controls)
+  in_gyromouse_debug                - Set to 1 to show raw gyro sensor readings
+  in_gyromouse_pitch                - Amplify raw sensor readings for pitch
+                                      up-down (negative values invert axis)
+  in_gyromouse_yaw                  - Amplify raw sensor readings for yaw
+                                      left-right (negative values invert axis)
+  in_gyromouse_pitch_ui             - As above but for ui / in-menu
+  in_gyromouse_yaw_ui               - As above but for ui / in-menu
+
   j_forward                         - Joystick analogue to m_forward,
                                       for forward movement speed/direction.
   j_side                            - Joystick analogue to m_side,
