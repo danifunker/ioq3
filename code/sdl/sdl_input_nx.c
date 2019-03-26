@@ -841,6 +841,9 @@ static void IN_GamepadMove( void )
 		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN]) {
 			Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
 		}
+		// show OSK if L is pressed whilst in console
+		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ))
+			IN_ShowOSK_f( );
 	}
 }
 
