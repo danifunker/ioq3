@@ -52,6 +52,7 @@ static SDL_Renderer *SDL_renderer = NULL; // this is required for input to work 
 static EGLDisplay s_display;
 static EGLSurface s_surface;
 static EGLContext s_context;
+static NWindow *s_win;
 
 cvar_t *r_allowSoftwareGL; // Don't abort out if a hardware visual can't be obtained
 cvar_t *r_allowResize; // make window resizable
@@ -111,6 +112,8 @@ static void SetMesaConfig(void)
 static qboolean InitEGL(NWindow *win)
 {
 	SetMesaConfig();
+
+	s_win = win;
 
 	// Connect to the EGL default display
 	s_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -180,6 +183,7 @@ _fail1:
 	eglTerminate(s_display);
 	s_display = NULL;
 _fail0:
+	s_win = NULL;
 	return qfalse;
 }
 
@@ -200,6 +204,7 @@ static void DeinitEGL (void)
 		}
 		eglTerminate(s_display);
 		s_display = NULL;
+		s_win = NULL;
 	}
 }
 
@@ -637,7 +642,8 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 
 	eglSwapInterval( s_display, r_swapInterval->integer );
 
-	gfxConfigureResolution( glConfig.vidWidth, glConfig.vidHeight );
+	if (s_win)
+		nwindowSetCrop( s_win, 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 
 	qglClearColor( 0.5, 0.5, 0.5, 1 );
 	qglClear( GL_COLOR_BUFFER_BIT );

@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	ioquake3-nx
 APP_AUTHOR	:=	fgsfds
-APP_VERSION	:=	0.1.0
+APP_VERSION	:=	0.2.0
 
 TARGET		:=	ioquake3nx
 BUILD		:=	build
@@ -318,7 +318,7 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=	-lopenal-soft -lSDL2main -lSDL2 -lEGL -lglapi -ldrm_nouveau \
-		-lvorbisfile -lvorbis -logg -ljpeg -lcurl -lz -lnx -lm -lstdc++
+		-lvorbisfile -lvorbis -logg -ljpeg -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lnx -lm -lstdc++
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
