@@ -69,8 +69,7 @@ GL1_SOURCEFILES	:=\
 	code/renderergl1/tr_shadows.o \
 	code/renderergl1/tr_sky.o \
 	code/renderergl1/tr_surface.o \
-	code/renderergl1/tr_world.o \
-	code/glad/glad.c
+	code/renderergl1/tr_world.o
 
 # this one is more fancy, but only works if there's enough memory
 # ie you'll have to run ioquake3 as a regular app instead of an applet
@@ -250,7 +249,7 @@ SOURCEFILES	:= \
 	code/sys/con_passive.c \
 	\
 	code/sdl/sdl_gamma.c \
-	code/sdl/sdl_egl_glimp.c \
+	code/sdl/sdl_glimp.c \
 	\
 	$(GL1_SOURCEFILES)
 

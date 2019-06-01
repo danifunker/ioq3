@@ -275,9 +275,6 @@ Single exit point (regular exit or in case of error)
 */
 static __attribute__ ((noreturn)) void Sys_Exit( int exitCode )
 {
-	extern qboolean glimp_shutdown_full;
-	glimp_shutdown_full = qtrue;
-
 	CON_Shutdown( );
 
 #ifndef DEDICATED
