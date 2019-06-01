@@ -30,6 +30,7 @@ glRefConfig_t glRefConfig;
 qboolean    textureFilterAnisotropic = qfalse;
 int         maxAnisotropy = 0;
 float       displayAspect = 0.0f;
+qboolean    haveClampToEdge = qfalse;
 
 glstate_t	glState;
 
@@ -283,6 +284,12 @@ static void InitOpenGL( void )
 		if ( glRefConfig.glslMaxAnimatedBones < 12 ) {
 			glRefConfig.glslMaxAnimatedBones = 0;
 		}
+	}
+
+	// check for GLSL function textureCubeLod()
+	if ( r_cubeMapping->integer && !QGL_VERSION_ATLEAST( 3, 0 ) ) {
+		ri.Printf( PRINT_WARNING, "WARNING: Disabled r_cubeMapping because it requires OpenGL 3.0\n" );
+		ri.Cvar_Set( "r_cubeMapping", "0" );
 	}
 
 	// set default state
@@ -1552,6 +1559,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 		textureFilterAnisotropic = qfalse;
 		maxAnisotropy = 0;
 		displayAspect = 0.0f;
+		haveClampToEdge = qfalse;
 
 		Com_Memset( &glState, 0, sizeof( glState ) );
 	}
