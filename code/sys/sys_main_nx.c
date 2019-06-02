@@ -635,7 +635,7 @@ void Sys_ParseArgs( int argc, char **argv )
 	}
 }
 
-#define DEFAULT_BASEDIR "/switch/ioquake3"
+#define DEFAULT_BASEDIR "."
 
 /*
 =================

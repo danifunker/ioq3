@@ -280,7 +280,9 @@ char *Sys_Cwd( void )
 {
 	static char cwd[MAX_OSPATH];
 
-	snprintf( cwd, sizeof( cwd ), "/switch/ioquake3" );
+	char *result = getcwd( cwd, sizeof( cwd ) - 1 );
+	if( result != cwd )
+		return NULL;
 
 	cwd[MAX_OSPATH-1] = 0;
 
@@ -504,7 +506,7 @@ void Sys_ErrorDialog( const char *error )
 	char buffer[ 1024 ];
 	unsigned int size;
 	FILE *f = NULL;
-	const char *ospath = "/switch/ioquake3/crashlog.txt";
+	const char *ospath = "./crashlog.txt";
 
 	Sys_Print( va( "%s\n", error ) );
 
