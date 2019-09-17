@@ -30,6 +30,7 @@ glRefConfig_t glRefConfig;
 qboolean    textureFilterAnisotropic = qfalse;
 int         maxAnisotropy = 0;
 float       displayAspect = 0.0f;
+qboolean    haveClampToEdge = qfalse;
 
 glstate_t	glState;
 
@@ -285,6 +286,12 @@ static void InitOpenGL( void )
 		}
 	}
 
+	// check for GLSL function textureCubeLod()
+	if ( r_cubeMapping->integer && !QGL_VERSION_ATLEAST( 3, 0 ) ) {
+		ri.Printf( PRINT_WARNING, "WARNING: Disabled r_cubeMapping because it requires OpenGL 3.0\n" );
+		ri.Cvar_Set( "r_cubeMapping", "0" );
+	}
+
 	// set default state
 	GL_SetDefaultState();
 }
@@ -358,8 +365,10 @@ vidmode_t r_vidModes[] =
 	{ "Mode 10: 2048x1536",		2048,	1536,	1 },
 	{ "Mode 11: 856x480 (wide)",856,	480,	1 },
 #ifdef __SWITCH__
-	{ "Mode 12: 1280x720 (wide)",		1280,	720,	1 },
-	{ "Mode 13: 1920x1080 (wide)",1920,	1080,	1 },
+	{ "Mode 12: 640x360 (wide)",	640,	360,	1 },
+	{ "Mode 13: 960x540 (wide)",	960,	540,	1 },
+	{ "Mode 14: 1280x720 (wide)",1280,	720,	1 },
+	{ "Mode 15: 1920x1080 (wide)",1920,	1080,	1 },
 #endif
 };
 static int	s_numVidModes = ARRAY_LEN( r_vidModes );
@@ -1550,6 +1559,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 		textureFilterAnisotropic = qfalse;
 		maxAnisotropy = 0;
 		displayAspect = 0.0f;
+		haveClampToEdge = qfalse;
 
 		Com_Memset( &glState, 0, sizeof( glState ) );
 	}

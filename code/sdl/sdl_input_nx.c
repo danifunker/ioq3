@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../sys/sys_local.h"
 
 static cvar_t *in_keyboardDebug     = NULL;
+static char keyboardShiftMap[K_LAST_KEY];
 
 static SDL_GameController *gamepad = NULL;
 static SDL_Joystick *stick = NULL;
@@ -452,6 +453,44 @@ struct
 	unsigned int oldhats;
 } stick_state;
 
+/*
+==============
+IN_InitKeyMaps
+==============
+*/
+static void IN_InitKeys( void )
+{
+	SDL_StartTextInput( );
+
+	int i;
+	for (i = 0; i < K_LAST_KEY; i++)
+		keyboardShiftMap[i] = i;
+
+	for (i='a' ; i<='z' ; i++)
+		keyboardShiftMap[i] = i - 'a' + 'A';
+
+	keyboardShiftMap['1'] = '!';
+	keyboardShiftMap['2'] = '@';
+	keyboardShiftMap['3'] = '#';
+	keyboardShiftMap['4'] = '$';
+	keyboardShiftMap['5'] = '%';
+	keyboardShiftMap['6'] = '^';
+	keyboardShiftMap['7'] = '&';
+	keyboardShiftMap['8'] = '*';
+	keyboardShiftMap['9'] = '(';
+	keyboardShiftMap['0'] = ')';
+	keyboardShiftMap['-'] = '_';
+	keyboardShiftMap['='] = '+';
+	keyboardShiftMap[','] = '<';
+	keyboardShiftMap['.'] = '>';
+	keyboardShiftMap['/'] = '?';
+	keyboardShiftMap[';'] = ':';
+	keyboardShiftMap['\''] = '"';
+	keyboardShiftMap['['] = '{';
+	keyboardShiftMap[']'] = '}';
+	keyboardShiftMap['`'] = '~';
+	keyboardShiftMap['\\'] = '|';
+}
 
 /*
 ===============
@@ -805,6 +844,16 @@ static void IN_GamepadMove( void )
 		if (changed[SDL_CONTROLLER_BUTTON_DPAD_RIGHT])
 			Com_QueueEvent( in_eventTime, SE_KEY, K_RIGHTARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT], 0, NULL );
 	}
+	else
+	{
+		// In-game, dpad down to open console
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN]) {
+			Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
+		}
+		// show OSK if L is pressed whilst in console
+		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ))
+			IN_ShowOSK_f( );
+	}
 }
 
 
@@ -1040,8 +1089,14 @@ static void IN_ProcessEvents( void )
 				if ( e.key.repeat && Key_GetCatcher( ) == 0 )
 					break;
 
-				if( ( key = IN_TranslateSDLToQ3Key( &e.key.keysym, qtrue ) ) )
+				if( ( key = IN_TranslateSDLToQ3Key( &e.key.keysym, qtrue ) ) ) {
 					Com_QueueEvent( in_eventTime, SE_KEY, key, qtrue, 0, NULL );
+					if(key >= 32 && key <= 127) {
+						if(e.key.keysym.mod & KMOD_LSHIFT || e.key.keysym.mod & KMOD_RSHIFT)
+							key = keyboardShiftMap[key];
+						Com_QueueEvent( in_eventTime, SE_CHAR, key, 0, 0, NULL );
+					}
+				}
 
 				if( key == K_BACKSPACE )
 					Com_QueueEvent( in_eventTime, SE_CHAR, CTRL('h'), 0, 0, NULL );
@@ -1101,11 +1156,18 @@ static void IN_ProcessEvents( void )
 								Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, qtrue, 0, NULL );
 								Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, qfalse, 0, NULL );
 							}
+							else if( utf32 == '\n' )
+							{
+								Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, qtrue, 0, NULL );
+								Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, qfalse, 0, NULL );
+							}
 							else
+							{
 								Com_QueueEvent( in_eventTime, SE_CHAR, utf32, 0, 0, NULL );
+							}
 						}
-          }
-        }
+					}
+				}
 				break;
 
 			case SDL_MOUSEMOTION:
@@ -1355,8 +1417,6 @@ void IN_Init( void *windowData )
 	in_joystick = Cvar_Get( "in_joystick", "1", CVAR_ARCHIVE|CVAR_LATCH );
 	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
 
-	SDL_StartTextInput( );
-
 	mouseAvailable = ( in_mouse->value != 0 );
 	IN_DeactivateMouse( Cvar_VariableIntegerValue( "r_fullscreen" ) != 0 );
 
@@ -1367,6 +1427,8 @@ void IN_Init( void *windowData )
 	IN_InitJoystick( );
 
 	IN_InitGyro( );
+
+	IN_InitKeys( );
 
 	Com_DPrintf( "------------------------------------\n" );
 }

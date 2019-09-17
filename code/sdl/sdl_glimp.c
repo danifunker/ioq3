@@ -261,7 +261,7 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 	version = (const char *)qglGetString( GL_VERSION );
 
 	if ( !version ) {
-		Com_Error( ERR_FATAL, "GL_VERSION is NULL\n" );
+		Com_Error( ERR_FATAL, "GL_VERSION is NULL" );
 	}
 
 	if ( Q_stricmpn( "OpenGL ES", version, 9 ) == 0 ) {
@@ -277,7 +277,7 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 	}
 
 	if ( fixedFunction ) {
-		if ( QGL_VERSION_ATLEAST( 1, 2 ) ) {
+		if ( QGL_VERSION_ATLEAST( 1, 1 ) ) {
 			QGL_1_1_PROCS;
 			QGL_1_1_FIXED_FUNCTION_PROCS;
 			QGL_DESKTOP_1_1_PROCS;
@@ -289,9 +289,9 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 			QGL_ES_1_1_PROCS;
 			QGL_ES_1_1_FIXED_FUNCTION_PROCS;
 			// error so this doesn't segfault due to NULL desktop GL functions being used
-			Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s\n", version );
+			Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s", version );
 		} else {
-			Com_Error( ERR_FATAL, "Unsupported OpenGL Version (%s), OpenGL 1.2 is required\n", version );
+			Com_Error( ERR_FATAL, "Unsupported OpenGL Version (%s), OpenGL 1.1 is required", version );
 		}
 	} else {
 		if ( QGL_VERSION_ATLEAST( 2, 0 ) ) {
@@ -307,9 +307,9 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 			QGL_1_5_PROCS;
 			QGL_2_0_PROCS;
 			// error so this doesn't segfault due to NULL desktop GL functions being used
-			Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s\n", version );
+			Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s", version );
 		} else {
-			Com_Error( ERR_FATAL, "Unsupported OpenGL Version (%s), OpenGL 2.0 is required\n", version );
+			Com_Error( ERR_FATAL, "Unsupported OpenGL Version (%s), OpenGL 2.0 is required", version );
 		}
 	}
 
@@ -474,6 +474,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		SDL_window = NULL;
 	}
 
+#ifndef __SWITCH__
 	if( fullscreen )
 	{
 		flags |= SDL_WINDOW_FULLSCREEN;
@@ -486,6 +487,9 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 
 		glConfig.isFullscreen = qfalse;
 	}
+#else
+	glConfig.isFullscreen = qfalse;
+#endif
 
 	colorBits = r_colorbits->value;
 	if ((!colorBits) || (colorBits >= 32))
@@ -579,6 +583,12 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 
 		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, samples ? 1 : 0 );
 		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, samples );
+
+#ifdef __SWITCH__
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+#endif
 
 		if(r_stereoEnabled->integer)
 		{
@@ -964,6 +974,17 @@ static void GLimp_InitExtensions( qboolean fixedFunction )
 	else
 	{
 		ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n" );
+	}
+
+	haveClampToEdge = qfalse;
+	if ( QGL_VERSION_ATLEAST( 1, 2 ) || QGLES_VERSION_ATLEAST( 1, 0 ) || SDL_GL_ExtensionSupported( "GL_SGIS_texture_edge_clamp" ) )
+	{
+		ri.Printf( PRINT_ALL, "...using GL_SGIS_texture_edge_clamp\n" );
+		haveClampToEdge = qtrue;
+	}
+	else
+	{
+		ri.Printf( PRINT_ALL, "...GL_SGIS_texture_edge_clamp not found\n" );
 	}
 }
 
