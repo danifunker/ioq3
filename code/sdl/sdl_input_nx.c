@@ -46,6 +46,15 @@ static qboolean mouseActive = qfalse;
 static cvar_t *in_mouse             = NULL;
 static cvar_t *in_nograb;
 
+static cvar_t *in_gyromouse          = NULL;
+static cvar_t *in_gyromouse_pitch    = NULL; // Negative values invert
+static cvar_t *in_gyromouse_yaw      = NULL; // Negative values invert
+static cvar_t *in_gyromouse_pitch_ui = NULL; // Negative values invert (in-menu)
+static cvar_t *in_gyromouse_yaw_ui   = NULL; // Negative values invert (in-menu)
+static cvar_t *in_gyromouse_debug    = NULL;
+static u32 sixAxisSensorHandles[4];
+static SixAxisSensorValues sixaxis;
+
 static cvar_t *in_joystick          = NULL;
 static cvar_t *in_joystickThreshold = NULL;
 static cvar_t *in_joystickNo        = NULL;
@@ -1260,6 +1269,69 @@ static void IN_ProcessEvents( void )
 
 /*
 ===============
+IN_InitGyro
+===============
+*/
+void IN_InitGyro( void )
+{
+  hidGetSixAxisSensorHandles(&sixAxisSensorHandles[0], 2, CONTROLLER_PLAYER_1, TYPE_JOYCON_PAIR);
+  hidGetSixAxisSensorHandles(&sixAxisSensorHandles[2], 1, CONTROLLER_PLAYER_1, TYPE_PROCONTROLLER);
+  hidGetSixAxisSensorHandles(&sixAxisSensorHandles[3], 1, CONTROLLER_HANDHELD, TYPE_HANDHELD);
+  hidStartSixAxisSensor(sixAxisSensorHandles[0]);
+  hidStartSixAxisSensor(sixAxisSensorHandles[1]);
+  hidStartSixAxisSensor(sixAxisSensorHandles[2]);
+  hidStartSixAxisSensor(sixAxisSensorHandles[3]);
+}
+
+/*
+===============
+IN_ProcessGyro
+===============
+*/
+void IN_ProcessGyro( void )
+{
+       if( !in_gyromouse->integer ) {
+               hidScanInput();
+               hidSixAxisSensorValuesRead(&sixaxis, CONTROLLER_P1_AUTO, 1);
+
+               if( in_gyromouse_debug->integer ) {
+                       Com_Printf("Gyroscope:        x=% .4f, y=% .4f, z=% .4f\n", sixaxis.gyroscope.x, sixaxis.gyroscope.y, sixaxis.gyroscope.z);
+                       Com_Printf("Orientation matrix:\n"
+                                                                "                  [ % .4f,   % .4f,   % .4f ]\n"
+                                                                "                  [ % .4f,   % .4f,   % .4f ]\n"
+                                                                "                  [ % .4f,   % .4f,   % .4f ]\n",
+                                                                sixaxis.orientation[0].x, sixaxis.orientation[0].y, sixaxis.orientation[0].z,
+                                                                sixaxis.orientation[1].x, sixaxis.orientation[1].y, sixaxis.orientation[1].z,
+                                                                sixaxis.orientation[2].x, sixaxis.orientation[2].y, sixaxis.orientation[2].z);
+               }
+
+               if (clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI )) {
+                       sixaxis.gyroscope.x *= in_gyromouse_pitch_ui->value;
+                       sixaxis.gyroscope.y *= in_gyromouse_yaw_ui->value;
+               } else {
+                       sixaxis.gyroscope.x *= in_gyromouse_pitch->value;
+                       sixaxis.gyroscope.y *= in_gyromouse_yaw->value;
+               }
+
+               Com_QueueEvent( in_eventTime, SE_MOUSE, sixaxis.gyroscope.y, sixaxis.gyroscope.x, 0, NULL );
+       }
+}
+
+/*
+===============
+IN_ShutdownGyro
+===============
+*/
+void IN_ShutdownGyro( void )
+{
+       hidStopSixAxisSensor(sixAxisSensorHandles[0]);
+       hidStopSixAxisSensor(sixAxisSensorHandles[1]);
+       hidStopSixAxisSensor(sixAxisSensorHandles[2]);
+       hidStopSixAxisSensor(sixAxisSensorHandles[3]);
+}
+
+/*
+===============
 IN_Frame
 ===============
 */
@@ -1294,6 +1366,8 @@ void IN_Frame( void )
 		IN_ActivateMouse( cls.glconfig.isFullscreen );
 
 	IN_ProcessEvents( );
+
+	IN_ProcessGyro( );
 
 	// Set event time for next frame to earliest possible time an event could happen
 	in_eventTime = Sys_Milliseconds( );
@@ -1333,6 +1407,13 @@ void IN_Init( void *windowData )
 	in_mouse = Cvar_Get( "in_mouse", "1", CVAR_ARCHIVE );
 	in_nograb = Cvar_Get( "in_nograb", "0", CVAR_ARCHIVE );
 
+	in_gyromouse = Cvar_Get( "in_gyromouse", "0", CVAR_ARCHIVE );
+	in_gyromouse_debug = Cvar_Get( "in_gyromouse_debug", "0", CVAR_ARCHIVE );
+	in_gyromouse_pitch = Cvar_Get( "in_gyromouse_pitch", "-100.0", CVAR_ARCHIVE );
+	in_gyromouse_yaw = Cvar_Get( "in_gyromouse_yaw", "-10.0", CVAR_ARCHIVE );
+	in_gyromouse_pitch_ui = Cvar_Get( "in_gyromouse_pitch_ui", "50.0", CVAR_ARCHIVE );
+	in_gyromouse_yaw_ui = Cvar_Get( "in_gyromouse_yaw_ui", "75.0", CVAR_ARCHIVE );
+
 	in_joystick = Cvar_Get( "in_joystick", "1", CVAR_ARCHIVE|CVAR_LATCH );
 	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
 
@@ -1344,6 +1425,8 @@ void IN_Init( void *windowData )
 	Cvar_SetValue( "com_minimized", appState & SDL_WINDOW_MINIMIZED );
 
 	IN_InitJoystick( );
+
+	IN_InitGyro( );
 
 	IN_InitKeys( );
 
@@ -1363,6 +1446,8 @@ void IN_Shutdown( void )
 	mouseAvailable = qfalse;
 
 	IN_ShutdownJoystick( );
+
+	IN_ShutdownGyro( );
 
 	SDL_window = NULL;
 }
