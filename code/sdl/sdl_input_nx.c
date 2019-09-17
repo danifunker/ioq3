@@ -1290,31 +1290,31 @@ IN_ProcessGyro
 */
 void IN_ProcessGyro( void )
 {
-       if( !in_gyromouse->integer ) {
-               hidScanInput();
-               hidSixAxisSensorValuesRead(&sixaxis, CONTROLLER_P1_AUTO, 1);
+  if( in_gyromouse->integer ) {
+    hidScanInput();
+    hidSixAxisSensorValuesRead(&sixaxis, CONTROLLER_P1_AUTO, 1);
 
-               if( in_gyromouse_debug->integer ) {
-                       Com_Printf("Gyroscope:        x=% .4f, y=% .4f, z=% .4f\n", sixaxis.gyroscope.x, sixaxis.gyroscope.y, sixaxis.gyroscope.z);
-                       Com_Printf("Orientation matrix:\n"
-                                                                "                  [ % .4f,   % .4f,   % .4f ]\n"
-                                                                "                  [ % .4f,   % .4f,   % .4f ]\n"
-                                                                "                  [ % .4f,   % .4f,   % .4f ]\n",
-                                                                sixaxis.orientation[0].x, sixaxis.orientation[0].y, sixaxis.orientation[0].z,
-                                                                sixaxis.orientation[1].x, sixaxis.orientation[1].y, sixaxis.orientation[1].z,
-                                                                sixaxis.orientation[2].x, sixaxis.orientation[2].y, sixaxis.orientation[2].z);
-               }
+    if ( in_gyromouse_debug->integer ) {
+      Com_Printf("Gyroscope:        x=% .4f, y=% .4f, z=% .4f\n", sixaxis.gyroscope.x, sixaxis.gyroscope.y, sixaxis.gyroscope.z);
+      Com_Printf("Orientation matrix:\n"
+                 "                  [ % .4f,   % .4f,   % .4f ]\n"
+                 "                  [ % .4f,   % .4f,   % .4f ]\n"
+                 "                  [ % .4f,   % .4f,   % .4f ]\n",
+                 sixaxis.orientation[0].x, sixaxis.orientation[0].y, sixaxis.orientation[0].z,
+                 sixaxis.orientation[1].x, sixaxis.orientation[1].y, sixaxis.orientation[1].z,
+                 sixaxis.orientation[2].x, sixaxis.orientation[2].y, sixaxis.orientation[2].z);
+    }
 
-               if (clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI )) {
-                       sixaxis.gyroscope.x *= in_gyromouse_pitch_ui->value;
-                       sixaxis.gyroscope.y *= in_gyromouse_yaw_ui->value;
-               } else {
-                       sixaxis.gyroscope.x *= in_gyromouse_pitch->value;
-                       sixaxis.gyroscope.y *= in_gyromouse_yaw->value;
-               }
+    if( clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
+      sixaxis.gyroscope.x *= in_gyromouse_pitch_ui->value;
+      sixaxis.gyroscope.y *= in_gyromouse_yaw_ui->value;
+    } else {
+      sixaxis.gyroscope.x *= in_gyromouse_pitch->value;
+      sixaxis.gyroscope.y *= in_gyromouse_yaw->value;
+    }
 
-               Com_QueueEvent( in_eventTime, SE_MOUSE, sixaxis.gyroscope.y, sixaxis.gyroscope.x, 0, NULL );
-       }
+    Com_QueueEvent( in_eventTime, SE_MOUSE, sixaxis.gyroscope.y, sixaxis.gyroscope.x, 0, NULL );
+  }
 }
 
 /*
@@ -1324,10 +1324,10 @@ IN_ShutdownGyro
 */
 void IN_ShutdownGyro( void )
 {
-       hidStopSixAxisSensor(sixAxisSensorHandles[0]);
-       hidStopSixAxisSensor(sixAxisSensorHandles[1]);
-       hidStopSixAxisSensor(sixAxisSensorHandles[2]);
-       hidStopSixAxisSensor(sixAxisSensorHandles[3]);
+  hidStopSixAxisSensor(sixAxisSensorHandles[0]);
+  hidStopSixAxisSensor(sixAxisSensorHandles[1]);
+  hidStopSixAxisSensor(sixAxisSensorHandles[2]);
+  hidStopSixAxisSensor(sixAxisSensorHandles[3]);
 }
 
 /*
