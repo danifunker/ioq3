@@ -165,6 +165,8 @@ The defaults for these variables differ depending on the target platform.
                                       left-right (negative values invert axis)
   in_gyromouse_pitch_ui             - As above but for ui / in-menu
   in_gyromouse_yaw_ui               - As above but for ui / in-menu
+  in_gyromouse_yaw_axis             - Selects which gyro axis controls yaw
+                                      (0 - roll, 1 - yaw)
 
   j_forward                         - Joystick analogue to m_forward,
                                       for forward movement speed/direction.

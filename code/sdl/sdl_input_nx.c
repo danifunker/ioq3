@@ -51,6 +51,7 @@ static cvar_t *in_gyromouse_pitch    = NULL; // Negative values invert
 static cvar_t *in_gyromouse_yaw      = NULL; // Negative values invert
 static cvar_t *in_gyromouse_pitch_ui = NULL; // Negative values invert (in-menu)
 static cvar_t *in_gyromouse_yaw_ui   = NULL; // Negative values invert (in-menu)
+static cvar_t *in_gyromouse_yaw_axis     = NULL; // 0 = .y is yaw, 1 = .z is yaw
 static cvar_t *in_gyromouse_debug    = NULL;
 static u32 sixAxisSensorHandles[4];
 static SixAxisSensorValues sixaxis;
@@ -821,17 +822,25 @@ static void IN_GamepadMove( void )
 		int mousedy = stick_state.oldaaxes[1];
 
 		if (abs(mousedx) > 32 || abs(mousedy) > 32)
-			Com_QueueEvent( in_eventTime, SE_MOUSE, mousedx / 3072, mousedy / 3072, 0, NULL );
+			Com_QueueEvent( in_eventTime, SE_MOUSE, mousedx / 4096, mousedy / 4096, 0, NULL );
 
+		// NOTE: A-B and X-Y are swapped in switch-sdl2, so keep this in mind when reading this code
+		// A and B act as mouse clicks, X as enter (in case you want to control the menu using the d-pad)
 		if (changed[SDL_CONTROLLER_BUTTON_A])
 			Com_QueueEvent( in_eventTime, SE_KEY, K_MOUSE2, stick_state.buttons[SDL_CONTROLLER_BUTTON_A], 0, NULL );
 		if (changed[SDL_CONTROLLER_BUTTON_B])
 			Com_QueueEvent( in_eventTime, SE_KEY, K_MOUSE1, stick_state.buttons[SDL_CONTROLLER_BUTTON_B], 0, NULL );
+		if (changed[SDL_CONTROLLER_BUTTON_Y])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, stick_state.buttons[SDL_CONTROLLER_BUTTON_Y], 0, NULL );
+
+		// Y to bring up console
+		if (changed[SDL_CONTROLLER_BUTTON_X])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_X], 0, NULL );
 
 		// show OSK if L is pressed in a menu
 		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER])
 			IN_ShowOSK_f( );
-		// use X to delete characters in menu fields
+		// use R to delete characters in menu fields
 		if (changed[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER])
 			Com_QueueEvent( in_eventTime, SE_CHAR, CTRL('h'), 0, 0, NULL );
 		// use dpad to control menu cursor
@@ -847,12 +856,28 @@ static void IN_GamepadMove( void )
 	else
 	{
 		// In-game, dpad down to open console
-		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN]) {
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_DOWN])
 			Com_QueueEvent( in_eventTime, SE_KEY, K_CONSOLE, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_DOWN], 0, NULL );
-		}
-		// show OSK if L is pressed whilst in console
-		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ))
+	}
+
+	if (Key_GetCatcher( ) & KEYCATCH_CONSOLE)
+	{
+		// in console: L to show OSK, R to delete
+		if (changed[SDL_CONTROLLER_BUTTON_LEFTSHOULDER] && stick_state.buttons[SDL_CONTROLLER_BUTTON_LEFTSHOULDER])
 			IN_ShowOSK_f( );
+		if (changed[SDL_CONTROLLER_BUTTON_RIGHTSHOULDER])
+			Com_QueueEvent( in_eventTime, SE_CHAR, CTRL('h'), 0, 0, NULL );
+		// A to enter
+		if (changed[SDL_CONTROLLER_BUTTON_B])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_ENTER, stick_state.buttons[SDL_CONTROLLER_BUTTON_B], 0, NULL );
+		// dpad up to scroll through commands
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_UP])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_UPARROW, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_UP], 0, NULL );
+		// left/right to scroll console log
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_LEFT])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_PGUP, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_LEFT], 0, NULL );
+		if (changed[SDL_CONTROLLER_BUTTON_DPAD_RIGHT])
+			Com_QueueEvent( in_eventTime, SE_KEY, K_PGDN, stick_state.buttons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT], 0, NULL );
 	}
 }
 
@@ -1283,6 +1308,7 @@ void IN_InitGyro( void )
   hidStartSixAxisSensor(sixAxisSensorHandles[3]);
 }
 
+
 /*
 ===============
 IN_ProcessGyro
@@ -1305,15 +1331,17 @@ void IN_ProcessGyro( void )
                  sixaxis.orientation[2].x, sixaxis.orientation[2].y, sixaxis.orientation[2].z);
     }
 
+    float pitch = sixaxis.gyroscope.x;
+    float yaw = in_gyromouse_yaw_axis->integer ? sixaxis.gyroscope.z : sixaxis.gyroscope.y;
     if( clc.state == CA_DISCONNECTED || clc.state == CA_CINEMATIC || ( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
-      sixaxis.gyroscope.x *= in_gyromouse_pitch_ui->value;
-      sixaxis.gyroscope.y *= in_gyromouse_yaw_ui->value;
+      pitch *= in_gyromouse_pitch_ui->value;
+      yaw *= in_gyromouse_yaw_ui->value;
     } else {
-      sixaxis.gyroscope.x *= in_gyromouse_pitch->value;
-      sixaxis.gyroscope.y *= in_gyromouse_yaw->value;
+      pitch *= in_gyromouse_pitch->value;
+      yaw *= in_gyromouse_yaw->value;
     }
 
-    Com_QueueEvent( in_eventTime, SE_MOUSE, sixaxis.gyroscope.y, sixaxis.gyroscope.x, 0, NULL );
+    Com_QueueEvent( in_eventTime, SE_MOUSE, yaw, pitch, 0, NULL );
   }
 }
 
@@ -1399,7 +1427,8 @@ void IN_Init( void *windowData )
 
 	Com_DPrintf( "\n------- Input Initialization -------\n" );
 
-	Cmd_AddCommand( "showosk", IN_ShowOSK_f );
+	if (!in_mouse) // HACK: check if this wasn't already called
+		Cmd_AddCommand( "showosk", IN_ShowOSK_f );
 
 	in_keyboardDebug = Cvar_Get( "in_keyboardDebug", "0", CVAR_ARCHIVE );
 
@@ -1409,10 +1438,11 @@ void IN_Init( void *windowData )
 
 	in_gyromouse = Cvar_Get( "in_gyromouse", "0", CVAR_ARCHIVE );
 	in_gyromouse_debug = Cvar_Get( "in_gyromouse_debug", "0", CVAR_ARCHIVE );
-	in_gyromouse_pitch = Cvar_Get( "in_gyromouse_pitch", "-100.0", CVAR_ARCHIVE );
-	in_gyromouse_yaw = Cvar_Get( "in_gyromouse_yaw", "-10.0", CVAR_ARCHIVE );
-	in_gyromouse_pitch_ui = Cvar_Get( "in_gyromouse_pitch_ui", "50.0", CVAR_ARCHIVE );
-	in_gyromouse_yaw_ui = Cvar_Get( "in_gyromouse_yaw_ui", "75.0", CVAR_ARCHIVE );
+	in_gyromouse_yaw_axis = Cvar_Get( "in_gyromouse_yaw_axis", "0", CVAR_ARCHIVE );
+	in_gyromouse_pitch = Cvar_Get( "in_gyromouse_pitch", "-10.0", CVAR_ARCHIVE );
+	in_gyromouse_yaw = Cvar_Get( "in_gyromouse_yaw", "-20.0", CVAR_ARCHIVE );
+	in_gyromouse_pitch_ui = Cvar_Get( "in_gyromouse_pitch_ui", "0.0", CVAR_ARCHIVE );
+	in_gyromouse_yaw_ui = Cvar_Get( "in_gyromouse_yaw_ui", "0.0", CVAR_ARCHIVE );
 
 	in_joystick = Cvar_Get( "in_joystick", "1", CVAR_ARCHIVE|CVAR_LATCH );
 	in_joystickThreshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
