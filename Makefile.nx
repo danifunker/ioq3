@@ -31,8 +31,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	ioquake3-nx
-APP_AUTHOR	:=	fgsfds
-APP_VERSION	:=	0.3.0
+APP_AUTHOR	:=	danifunker
+APP_VERSION	:=	0.0.1
 
 TARGET		:=	ioquake3nx
 BUILD		:=	build

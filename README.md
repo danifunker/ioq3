@@ -66,7 +66,7 @@ For Mac OS X, building a Universal Binary
 For Nintendo Switch:
   1. Install and set up devkitA64.
   2. Ensure you have the latest versions of the following libraries installed in your dkA64 environment:
-     libnx, switch-sdl2, switch-mesa, switch-libdrm_nouveau, switch-libjpeg-turbo, switch-zlib, switch-libogg, switch-libvorbis, switch-curl and [my fork of openal-soft](https://github.com/fgsfdsfgs/openal-soft)
+     libnx, switch-sdl2, switch-mesa, switch-libdrm_nouveau, switch-libjpeg-turbo, switch-zlib, switch-libogg, switch-libvorbis, switch-curl (all covered by switch-portlibs: easy install: `dkp-pacman -S switch-portlibs`)
   3. Call `make -f Makefile.nx` in this directory. This will produce `ioquake3nx.nro`.
   4. Refer to the installation instructions on the releases to install and run the game on your Switch.
 
